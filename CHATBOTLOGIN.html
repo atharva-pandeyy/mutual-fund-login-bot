@@ -1,0 +1,140 @@
+<!-- Save as index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mutual Fund Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #007bff;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #loader {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #loader svg {
+      display: block;
+      margin: 0 auto 10px auto;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        margin: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Mutual Fund Chatbot</h2>
+
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+
+  <button id="loginBtn" onclick="redirect('login')">🔓 Login</button>
+  <button id="registerBtn" onclick="redirect('register')">📝 Register</button>
+
+  <div id="loader">
+    <svg width="40" height="40" viewBox="0 0 100 100" fill="#007bff">
+      <circle cx="50" cy="50" r="35" stroke="#007bff" stroke-width="10" fill="none" stroke-dasharray="180" stroke-linecap="round">
+        <animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" from="0 50 50" to="360 50 50"/>
+      </circle>
+    </svg>
+    <p style="margin: 0; font-weight: bold; color: #007bff;">Processing...</p>
+  </div>
+</div>
+
+<script>
+  async function redirect(action) {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+    const loader = document.getElementById("loader");
+
+    if (!username || !password) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    // Show loader & disable buttons
+    loader.style.display = "block";
+    loginBtn.disabled = true;
+    registerBtn.disabled = true;
+
+    try {
+      const res = await fetch("https://atharvapandeyy.app.n8n.cloud/webhook/dd045827-b9ed-422f-89b4-4000b26ea1bf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, question: "", action })
+      });
+
+      const result = await res.text();
+
+      if (result.toLowerCase().includes("invalid password") || result.toLowerCase().includes("already exists")) {
+        alert(result);
+        loader.style.display = "none";
+        loginBtn.disabled = false;
+        registerBtn.disabled = false;
+        return;
+      }
+
+      // Redirect on success
+      const url = `chat-result.html?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&action=${action}`;
+      window.location.href = url;
+
+    } catch (error) {
+      alert("Something went wrong. Please try again.");
+      loader.style.display = "none";
+      loginBtn.disabled = false;
+      registerBtn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>
