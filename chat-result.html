@@ -98,26 +98,21 @@
 const params = new URLSearchParams(window.location.search);
 const username = params.get("username");
 const password = params.get("password");
-const action = "login"; // always login in chat mode
+const action = params.get("action");
 const firstQuestion = params.get("question");
 
 document.getElementById("username-display").textContent = username;
-
 const chat = document.getElementById("chat-box");
 
-// Helper to append messages
 function appendMessage(sender, text) {
   const msgDiv = document.createElement("div");
   msgDiv.className = `msg ${sender}`;
-
   const icon = document.createElement("div");
   icon.className = "icon";
   icon.textContent = sender === "user" ? "🧑" : "🤖";
-
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   bubble.textContent = text;
-
   if (sender === "user") {
     msgDiv.appendChild(icon);
     msgDiv.appendChild(bubble);
@@ -125,35 +120,39 @@ function appendMessage(sender, text) {
     msgDiv.appendChild(bubble);
     msgDiv.appendChild(icon);
   }
-
   chat.appendChild(msgDiv);
   chat.scrollTop = chat.scrollHeight;
 }
 
-// Send message and show bot response
 async function sendToBot(question) {
   appendMessage("user", question);
-  const botPlaceholder = { node: null };
 
-  appendMessage("bot", "Typing...");
-  botPlaceholder.node = chat.lastChild.querySelector(".bubble");
+  const botDiv = document.createElement("div");
+  botDiv.className = "msg bot";
+  const botText = document.createElement("div");
+  botText.className = "bubble";
+  botText.textContent = "Typing...";
+  botDiv.appendChild(botText);
+  const icon = document.createElement("div");
+  icon.className = "icon";
+  icon.textContent = "🤖";
+  botDiv.appendChild(icon);
+  chat.appendChild(botDiv);
+  chat.scrollTop = chat.scrollHeight;
 
   try {
-    const res = await fetch("https://atharvapandeyy.app.n8n.cloud/webhook/dd045827-b9ed-422f-89b4-4000b26ea1bf", {
+    const res = await fetch("https://atharvapandeyy.app.n8n.cloud/webhook-test/dd045827-b9ed-422f-89b4-4000b26ea1bf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password, question, action })
     });
-
     const reply = await res.text();
-    botPlaceholder.node.textContent = reply;
-
+    botText.textContent = reply;
   } catch (e) {
-    botPlaceholder.node.textContent = "⚠️ Could not reach server.";
+    botText.textContent = "⚠️ Could not reach server.";
   }
 }
 
-// Handle send button
 function sendMessage() {
   const input = document.getElementById("message");
   const msg = input.value.trim();
@@ -162,7 +161,14 @@ function sendMessage() {
   sendToBot(msg);
 }
 
-// If redirected with question, run it first
+// ✅ Press Enter to send
+document.getElementById("message").addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // Prevent newline
+    sendMessage();
+  }
+});
+
 if (firstQuestion) {
   sendToBot(firstQuestion);
 }
